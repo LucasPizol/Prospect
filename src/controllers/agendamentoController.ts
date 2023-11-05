@@ -4,14 +4,9 @@ import { agendamentoService } from "../services/agendamentoService";
 
 export const agendamentoController = {
   create: async (req: AuthenticatedRequest, res: Response) => {
-    const {
-      dataVisita,
-      dataFim,
-      descricao,
-      frequencia,
-      idprospect,
-      idsituacao,
-    } = req.body;
+    const { dataVisita, dataFim, descricao, frequencia, idprospect, idsituacao } = req.body;
+
+    console.log({ dataVisita, dataFim, descricao, frequencia, idprospect, idsituacao });
 
     try {
       const idagendamento = await agendamentoService.create({
@@ -58,10 +53,7 @@ export const agendamentoController = {
     const { id } = req.params;
 
     try {
-      await agendamentoService.update(
-        { dataVisita, dataFim, descricao, frequencia, idsituacao },
-        Number(id)
-      );
+      await agendamentoService.update({ dataVisita, dataFim, descricao, frequencia, idsituacao }, Number(id));
       return res.status(200).send();
     } catch (err) {
       if (err instanceof Error) {
@@ -72,6 +64,8 @@ export const agendamentoController = {
 
   delete: async (req: AuthenticatedRequest, res: Response) => {
     const { id } = req.params;
+
+    console.log(id);
 
     try {
       await agendamentoService.delete(Number(id));
@@ -96,23 +90,32 @@ export const agendamentoController = {
       }
     }
   },
-
-  showByDate: async (req: AuthenticatedRequest, res: Response) => {
-    const { date } = req.body;
-    const { iduser } = req.user!;
-
-    const splitedDate = date.split("-");
-    const dateToSend = new Date(
-      splitedDate[2],
-      splitedDate[1] - 1,
-      splitedDate[0]
-    );
+  updateAll: async (req: AuthenticatedRequest, res: Response) => {
+    const { idagendamento, codAgendamento, dataVisita, dataFim, descAgendamento, frequencia, idprospect, idsituacao } = req.body;
 
     try {
-      const response = await agendamentoService.showByDate(dateToSend, Number(iduser));
+      await agendamentoService.deleteAll(Number(idagendamento), codAgendamento);
+      await agendamentoService.create({ dataVisita, dataFim, descricao: descAgendamento, frequencia, idprospect, idsituacao });
+      return res.status(200).json();
+    } catch (err) {
+      if (err instanceof Error) {
+        return res.status(400).json({ message: err.message });
+      }
+    }
+  },
+
+  showByDate: async (req: AuthenticatedRequest, res: Response) => {
+    const { filter } = req.query!;
+    const { iduser } = req.user!;
+
+    if (!filter || typeof filter !== "string") return res.status(400).json({ error: "Data inválida" });
+
+    try {
+      const response = await agendamentoService.showByDate(filter, Number(iduser));
       return res.status(200).json(response);
     } catch (err) {
       if (err instanceof Error) {
+        console.log(err.message);
         return res.status(400).json({ message: err.message });
       }
     }

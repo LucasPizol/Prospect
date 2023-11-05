@@ -5,6 +5,7 @@ export interface AgendamentoCreationAttributes {
   frequencia: number;
   idprospect: number;
   idsituacao: number;
+  codAgendamento?: string;
 }
 
 export interface Agendamento extends AgendamentoCreationAttributes {

@@ -31,7 +31,7 @@ export const prospectService = {
   show: async (iduser: number) => {
     const prospectList = await db.query(`SELECT 
     idprospect,
-    nome, descricao, finalizado, telefone, created_at as createdAt, updated_at as updatedAt, logradouro, cep, bairro,cidade, numero, endereco_idendereco
+    nome, descricao, finalizado, telefone, created_at as createdAt, updated_at as updatedAt, logradouro, cep, bairro,cidade, numero, endereco_idendereco, UF
     FROM prospect
     INNER JOIN endereco ON prospect.endereco_idendereco = endereco.idendereco
     WHERE user_iduser = ${iduser} 

@@ -31,4 +31,5 @@ export const enderecoService = {
   delete: async (id: number) => {
     await db.query(`DELETE FROM endereco WHERE idendereco = ${id}`);
   },
+
 };
