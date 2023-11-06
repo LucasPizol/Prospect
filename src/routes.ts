@@ -5,7 +5,6 @@ import { ensureAuth } from "./middlewares/auth";
 import { enderecoController } from "./controllers/enderecoController";
 import { agendamentoController } from "./controllers/agendamentoController";
 import { usersController } from "./controllers/usersController";
-import { pesquisaController } from "./controllers/pesquisaController";
 
 const router = express.Router();
 
@@ -28,8 +27,5 @@ router.delete("/agendamento/:id", ensureAuth, agendamentoController.deleteOne);
 router.delete("/agendamentos/:id", ensureAuth, agendamentoController.deleteAll);
 
 router.get("/agendamento/date", ensureAuth, agendamentoController.getByDate);
-
-router.get("/pesquisa", ensureAuth, pesquisaController.getById);
-router.put("/pesquisa/:id", ensureAuth, pesquisaController.send);
 
 export { router };
