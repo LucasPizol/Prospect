@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 
 export const authController = {
   register: async (req: Request, res: Response) => {
-    const { codigo, email, password, nome, sobrenome, supervisorId } = req.body;
+    const { codigo, email, password, nome, sobrenome, SupervisorId } = req.body;
     try {
       const encryptedPassword = await bcrypt.hash(String(password), 10);
 
@@ -15,11 +15,11 @@ export const authController = {
         password: encryptedPassword,
         nome,
         sobrenome,
-        supervisorId,
+        SupervisorId,
       });
 
       res.status(200).send({
-        iduser: createdUser.insertId,
+        iduser: createdUser?.id,
         email,
         password: encryptedPassword,
       });
@@ -36,22 +36,16 @@ export const authController = {
     try {
       const user = await userService.findByCode(code);
 
-
       if (!user) {
-        return res
-          .status(404)
-          .json({ message: "Usuário ou senha incorretos." });
+        return res.status(404).json({ message: "Usuário ou senha incorretos." });
       }
-      const isSame = await userService.checkPassword(password, user.password);
-      if (!isSame)
-        return res
-          .status(404)
-          .json({ message: "Usuário ou senha incorretos." });
+      const isSame = await userService.checkPassword(password, user.getDataValue("password"));
+      if (!isSame) return res.status(404).json({ message: "Usuário ou senha incorretos." });
 
       const payload = {
-        id: user.id,
-        code: user.codigo,
-        email: user.email,
+        id: user.getDataValue("id"),
+        codigo: user.getDataValue("codigo"),
+        email: user.getDataValue("email"),
       };
 
       const token = jwtService.signToken(payload, "7d");

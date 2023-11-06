@@ -1,100 +1,105 @@
-import { log } from "console";
-import { db } from "../database/database";
-import { AgendamentoCreationAttributes } from "../models/Agendamento";
+import { Prospect } from "../models";
+import { Agendamento, AgendamentoCreationAttributes } from "../models/Agendamento";
 import randomStr from "./randomNumService";
-
-interface UpdateAgendamento {
-  dataVisita: Date;
-  dataFim: Date;
-  descricao: string;
-  frequencia: number;
-  idsituacao: number;
-}
+import { Op } from "sequelize";
 
 export const agendamentoService = {
-  create: async ({ dataVisita, dataFim, descricao, frequencia, idprospect, idsituacao }: AgendamentoCreationAttributes) => {
+  create: async ({ dataVisita, dataFim, descricao, frequencia, ProspectId, finalizado }: AgendamentoCreationAttributes) => {
     const dateDataInicio = new Date(dataVisita);
     const dateDataFim = new Date(dataFim);
     const agendamentoCode = randomStr.getRandomNum(20);
 
+    console.log(dateDataInicio);
+
     for (let i = dateDataInicio.getTime(); i < dateDataFim.getTime(); i = dateDataInicio.setDate(dateDataInicio.getDate() + frequencia * 7)) {
-      await db.query(`INSERT INTO agendamento (cod_agendamento, data_visita, data_fim, descricao, frequencia, prospect_idprospect, situacao_idsituacao)
-      VALUES (
-        '${agendamentoCode}',
-        '${dateDataInicio.toISOString().slice(0, 10)}', '${dataFim}', '${descricao}', ${frequencia}, ${idprospect}, ${idsituacao})
-      `);
+      await Agendamento.create({
+        dataVisita: dateDataInicio,
+        dataFim,
+        descricao,
+        frequencia,
+        ProspectId,
+        codAgendamento: agendamentoCode,
+        finalizado,
+      });
     }
 
     return;
   },
 
-  show: async (userid: number) => {
-    const agendamentos = await db.query(`
-        SELECT
-        idagendamento,
-        data_visita as dataVisita,
-        data_fim as dataFim,
-        agendamento.descricao as descAgendamento,
-        frequencia,
-        nome,
-        prospect.descricao as descProspect,
-        telefone,
-        logradouro,
-        cep,
-        bairro,
-        cidade,
-        prospect.idprospect as idprospect
-        FROM agendamento
-        INNER JOIN prospect
-        ON agendamento.prospect_idprospect = prospect.idprospect
-        INNER JOIN endereco ON  prospect.endereco_idendereco = endereco.idendereco
-        WHERE user_iduser = ${userid}
-        `);
+  show: async (id: number) => {
+    const agendamentos = await Agendamento.findAll({
+      where: {
+        ProspectId: id,
+      },
+    });
 
-    return agendamentos[0];
+    return agendamentos;
   },
 
-  showByDate: async (date: string, id: number) => {
-
-    console.log(id)
-    const agendamentos = await db.query(`
-    SELECT
-    idagendamento,
-    data_visita as dataVisita,
-    data_fim as dataFim,
-    agendamento.descricao as descAgendamento,
-    frequencia,
-    nome,
-    prospect.descricao as descProspect,
-    telefone,
-    logradouro,
-    cep,
-    bairro,
-    cidade,
-    numero,
-    UF,
-    cod_agendamento as codAgendamento,
-    prospect.idprospect as idprospect
-    FROM agendamento
-    INNER JOIN prospect
-    ON agendamento.prospect_idprospect = prospect.idprospect
-    INNER JOIN endereco ON prospect.endereco_idendereco = endereco.idendereco
-    WHERE data_visita= '${date}' AND user_iduser = ${id}
-    `);
-
-    return agendamentos[0];
-  },
-  update: async ({ dataVisita, dataFim, descricao, frequencia, idsituacao }: UpdateAgendamento, idagendamento: number) => {
-    await db.query(
-      `UPDATE agendamento SET data_visita='${dataVisita}', data_fim = '${dataFim}', descricao = '${descricao}', frequencia=${frequencia}, situacao_idsituacao = ${idsituacao} WHERE idagendamento=${idagendamento}`
-    );
-  },
-
-  delete: async (idagendamento: number) => {
-    await db.query(`DELETE FROM agendamento WHERE idagendamento=${idagendamento}`);
+  showByDate: async (dataVisita: string, id: number) => {
+    const agendamentos = await Agendamento.findAll({
+      where: {
+        id,
+        dataVisita,
+      },
+    });
   },
 
   deleteAll: async (id: number, codAgendamento: string) => {
-    await db.query(`DELETE FROM agendamento WHERE idagendamento >= ${id} AND cod_agendamento='${codAgendamento}'`);
+    await Agendamento.destroy({
+      where: {
+        id: {
+          [Op.gte]: id,
+        },
+        codAgendamento,
+      },
+    });
+  },
+
+  deleteOne: async (id: number) => {
+    await Agendamento.destroy({
+      where: {
+        id,
+      },
+    });
+  },
+
+  getByDate: async (id: number, dataVisita: Date) => {
+    const agendamentos = await Agendamento.findAll({
+      where: {
+        dataVisita,
+      },
+      attributes: ["dataVisita", "dataFim", "descricao", "frequencia", "codAgendamento"],
+      include: {
+        model: Prospect,
+        attributes: ["id", "nome", ["descricao", "prospect_descricao"], "telefone", "finalizado"],
+        where: {
+          user_id: id,
+        },
+      },
+    });
+
+    return agendamentos;
+  },
+
+  updateAll: async (id: number, attributes: { dataVisita: Date; dataFim: Date; descricao: string; frequencia: number; finalizado: boolean }) => {
+    await Agendamento.update(attributes, {
+      where: {
+        id,
+      },
+    });
+  },
+
+  finish: async (id: number) => {
+    await Agendamento.update(
+      {
+        finalizado: true,
+      },
+      {
+        where: {
+          id,
+        },
+      }
+    );
   },
 };

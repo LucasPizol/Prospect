@@ -1,68 +1,51 @@
-import { db } from "../database/database";
-import { EnderecoCreationAttributes } from "../models/Endereco";
+import { Endereco, EnderecoCreationAttributes } from "../models/Endereco";
 import { ProspectCreationAttributes } from "../models/Prospect";
-
-interface UpdateProspect {
-  nome: string;
-  descricao: string;
-  finalizado: number;
-  telefone: string;
-}
+import { Prospect, User } from "../models";
 
 export const prospectService = {
-  create: async ({
-    nome,
-    descricao,
-    finalizado,
-    telefone,
-    idendereco,
-    iduser,
-  }: ProspectCreationAttributes) => {
-    const today = new Date().toISOString().slice(0, 10);
+  create: async ({ nome, descricao, finalizado, telefone, EnderecoId, UserId }: ProspectCreationAttributes) => {
+    const prospect = await Prospect.create({
+      nome,
+      descricao,
+      finalizado,
+      telefone,
+      EnderecoId,
+      UserId,
+    });
 
-    const prospect: any = await db.query(`
-        INSERT INTO prospect (nome, descricao, finalizado, telefone, created_at, updated_at, endereco_idendereco, user_iduser)
-        VALUES ('${nome}', '${descricao}', '${finalizado}', '${telefone}', '${today}', '${today}', ${idendereco}, ${iduser})
-        `);
-
-    return prospect[0];
+    return prospect.id;
   },
 
-  show: async (iduser: number) => {
-    const prospectList = await db.query(`SELECT 
-    idprospect,
-    nome, descricao, finalizado, telefone, created_at as createdAt, updated_at as updatedAt, logradouro, cep, bairro,cidade, numero, endereco_idendereco, UF
-    FROM prospect
-    INNER JOIN endereco ON prospect.endereco_idendereco = endereco.idendereco
-    WHERE user_iduser = ${iduser} 
-    `);
+  show: async (UserId: number) => {
+    const list = await Prospect.findAll({
+      attributes: ["nome", "descricao", "finalizado"],
+      include: [
+        {
+          model: Endereco,
+          attributes: ["id", "logradouro", "cep", "bairro", "cidade", "numero"],
+        },
+        {
+          model: User,
+          attributes: ["id", "nome", "sobrenome"],
+        },
+      ],
+      where: {
+        UserId,
+      },
+    });
 
-    return prospectList[0];
+    return list;
   },
 
-  update: async (
-    { nome, descricao, finalizado, telefone }: UpdateProspect,
+  update: async (id: number, attributes: { nome: string; finalizado: number; descricao: string; telefone: string }) => {
+    const [affectedRows, updatedProspect] = await Prospect.update(attributes, {
+      where: {
+        id,
+      },
+      returning: true,
+      individualHooks: true,
+    });
 
-    id: number
-  ) => {
-    const today = new Date().toISOString().slice(0, 10);
-
-    await db.query(`UPDATE prospect
-    SET nome='${nome}', descricao = '${descricao}', finalizado=${finalizado}, telefone='${telefone}', updated_at = '${today}'
-    WHERE idprospect = ${id}
-    `);
-  },
-
-  delete: async (id: number, idEndereco: number) => {
-    await db.query(`DELETE FROM agendamento WHERE prospect_idprospect = ${id}`);
-    await db.query(`DELETE FROM prospect WHERE idprospect = ${id}`);
-    await db.query(`DELETE FROM endereco WHERE idendereco  =${idEndereco}`);
-  },
-
-  findById: async (id: number) => {
-    const prospect: any = await db.query(
-      `SELECT * FROM prospect WHERE idprospect = ${id}`
-    );
-    return prospect[0][0];
+    return updatedProspect[0];
   },
 };

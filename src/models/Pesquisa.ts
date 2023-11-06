@@ -1,20 +1,41 @@
-export interface PesquisaCreationAttributes {
-  id_cliente: string;
-  nome_cliente: string;
+
+import { sequelize } from "../database";
+import { DataTypes, Model, Optional } from "sequelize";
+
+export interface Pesquisa {
+  id: number;
+  nomeCliente: string;
   cidade: number;
-  user_iduser: number;
+  UserId: number;
 }
 
-export interface Pesquisa extends PesquisaCreationAttributes {
-  idpesquisa_potencial: number;
-}
+export interface PesquisaCreationAttributes
+  extends Optional<Pesquisa, "id" > {}
 
-export interface PesquisaUpdate {
-  idpesquisa_potencial: number;
-  linha_1: number;
-  linha_2: number;
-  moto: number;
-  lubel: number;
-  pesadas: number;
-  frota?: number;
-}
+export interface PesquisaInstance
+  extends Model<Pesquisa, PesquisaCreationAttributes>,
+    Pesquisa {}
+
+export const Pesquisa = sequelize.define<PesquisaInstance, Pesquisa>("Pesquisa", {
+  id: {
+    allowNull: false,
+    autoIncrement: true,
+    primaryKey: true,
+    type: DataTypes.INTEGER,
+  },
+  nomeCliente: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
+  cidade: {
+    allowNull: false,
+    type: DataTypes.STRING,
+  },
+  UserId: {
+    allowNull: false,
+    type: DataTypes.INTEGER,
+    references: { model: "Users", key: "id" },
+    onUpdate: "CASCADE",
+    onDelete: "RESTRICT",
+  },
+});

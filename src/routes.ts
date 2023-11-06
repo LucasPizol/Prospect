@@ -17,20 +17,19 @@ router.get("/user", ensureAuth, usersController.get);
 router.post("/prospect", ensureAuth, prospectController.create);
 router.get("/prospect", ensureAuth, prospectController.show);
 router.put("/prospect/:id", ensureAuth, prospectController.update);
-router.delete("/prospect/:id", ensureAuth, prospectController.delete);
-
-router.put("/endereco/:id", ensureAuth, enderecoController.update);
 
 router.get("/agendamento", ensureAuth, agendamentoController.show);
-router.get("/agendamento/date", ensureAuth, agendamentoController.showByDate);
 router.post("/agendamento", ensureAuth, agendamentoController.create);
-router.put("/agendamento/:id", ensureAuth, agendamentoController.update);
-router.delete("/agendamento/:id", ensureAuth, agendamentoController.delete);
+router.put("/agendamento/:id", ensureAuth, agendamentoController.updateAll);
+router.put("/agendamento/finish/:id", ensureAuth, agendamentoController.finish);
 
-router.post("/agendamentos/updateAll", ensureAuth, agendamentoController.updateAll);
-router.delete("/agendamentos/:id/:cod", ensureAuth, agendamentoController.deleteAll);
+router.delete("/agendamento/:id", ensureAuth, agendamentoController.deleteOne);
+
+router.delete("/agendamentos/:id", ensureAuth, agendamentoController.deleteAll);
+
+router.get("/agendamento/date", ensureAuth, agendamentoController.getByDate);
 
 router.get("/pesquisa", ensureAuth, pesquisaController.getById);
-router.put("/pesquisa/:id", ensureAuth, pesquisaController.send)
+router.put("/pesquisa/:id", ensureAuth, pesquisaController.send);
 
 export { router };

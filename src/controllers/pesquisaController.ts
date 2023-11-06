@@ -4,10 +4,10 @@ import { pesquisaService } from "../services/pesquisaService";
 
 export const pesquisaController = {
   getById: async (req: AuthenticatedRequest, res: Response) => {
-    const { iduser } = req.user!;
+    const { id } = req.user!;
 
     try {
-      const data = await pesquisaService.getById(iduser);
+      const data = await pesquisaService.getById(id);
       return res.status(200).json(data);
     } catch (err) {
       if (err instanceof Error) {

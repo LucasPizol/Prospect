@@ -8,17 +8,10 @@ export interface AuthenticatedRequest extends Request {
   user?: User | null;
 }
 
-export function ensureAuth(
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) {
+export function ensureAuth(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authorizationHeader = req.headers.authorization;
 
-  if (!authorizationHeader)
-    return res
-      .status(401)
-      .json({ message: "Não autorizado: Nenhum token foi encontrado." });
+  if (!authorizationHeader) return res.status(401).json({ message: "Não autorizado: Nenhum token foi encontrado." });
 
   const token = authorizationHeader.replace(/Bearer /, "");
 
@@ -28,7 +21,9 @@ export function ensureAuth(
         message: "Não autorizado: token inválido",
       });
 
-    const user = await userService.findByCode((decoded as JwtPayload).code);
+      console.log(decoded)
+
+    const user = await userService.findByCode((decoded as JwtPayload).codigo);
 
     req.user = user;
 

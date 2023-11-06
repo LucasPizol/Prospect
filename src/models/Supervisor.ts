@@ -4,22 +4,22 @@ import { sequelize } from "../database";
 import { DataTypes, Model, Optional } from "sequelize";
 import bcrypt from "bcrypt";
 
-export interface User {
+export interface Supervisor {
   id: number;
   nome: string;
   sobrenome: string;
   codigo: string;
   password: string;
   email: string;
-  SupervisorId: number;
+  EmpresaId: number;
 }
 
-export interface UserCreationAttributes extends Optional<User, "id"> {}
+export interface SupervisorCreationAttributes extends Optional<Supervisor, "id"> {}
 
-export interface UserInstance extends Model<User, UserCreationAttributes>, User {}
+export interface SupervisorInstance extends Model<Supervisor, SupervisorCreationAttributes>, Supervisor {}
 
-export const User = sequelize.define<UserInstance, User>(
-  "User",
+export const Supervisor = sequelize.define<SupervisorInstance, Supervisor>(
+  "Supervisor",
   {
     id: {
       allowNull: false,
@@ -47,10 +47,10 @@ export const User = sequelize.define<UserInstance, User>(
       allowNull: false,
       type: DataTypes.STRING,
     },
-    SupervisorId: {
+    EmpresaId: {
       allowNull: false,
       type: DataTypes.INTEGER,
-      references: { model: "Supervisors", key: "id" },
+      references: { model: "Empresas", key: "id" },
       onUpdate: "CASCADE",
       onDelete: "RESTRICT",
     },

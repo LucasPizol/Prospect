@@ -1,35 +1,24 @@
-import { db } from "../database/database";
-import { EnderecoCreationAttributes } from "../models/Endereco";
+import { Endereco, EnderecoCreationAttributes } from "../models/Endereco";
 
 export const enderecoService = {
-  create: async ({
-    logradouro,
-    cep,
-    bairro,
-    cidade,
-    numero,
-    UF,
-  }: EnderecoCreationAttributes) => {
-    const endereco: any =
-      await db.query(`INSERT INTO endereco(logradouro, cep, bairro, numero, UF, cidade) VALUES (
-        '${logradouro}', '${cep}', '${bairro}', ${numero}, '${UF}', '${cidade}')
-      `);
+  create: async ({ logradouro, cep, bairro, cidade, numero, uf }: EnderecoCreationAttributes) => {
+    const endereco = await Endereco.create({
+      logradouro,
+      cep,
+      bairro,
+      cidade,
+      numero,
+      uf,
+    });
 
-    return endereco[0].insertId;
+    return endereco.id;
   },
 
-  update: async (
-    { logradouro, cep, bairro, numero, UF, cidade }: EnderecoCreationAttributes,
-    id: number
-  ) => {
-    await db.query(`UPDATE endereco SET
-            logradouro = '${logradouro}', cep = '${cep}', bairro = '${bairro}', numero=${numero}, UF='${UF}', cidade = '${cidade}'
-            WHERE idendereco = ${id}
-          `);
+  update: async (enderecoId: number, attributes: { logradouro: string; cep: string; bairro: string; cidade: string; numero: number; uf: string }) => {
+    await Endereco.update(attributes, {
+      where: {
+        id: enderecoId,
+      },
+    });
   },
-
-  delete: async (id: number) => {
-    await db.query(`DELETE FROM endereco WHERE idendereco = ${id}`);
-  },
-
 };

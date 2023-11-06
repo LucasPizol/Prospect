@@ -2,42 +2,20 @@ import { Response } from "express";
 import { AuthenticatedRequest } from "../middlewares/auth";
 import { prospectService } from "../services/prospectService";
 import { enderecoService } from "../services/enderecoService";
+import { Prospect, User } from "../models";
 
 export const prospectController = {
   create: async (req: AuthenticatedRequest, res: Response) => {
-    const {
-      nome,
-      descricao,
-      telefone,
-      logradouro,
-      cep,
-      bairro,
-      numero,
-      UF,
-      cidade,
-    } = req.body;
-
-    console.log({
-      nome,
-      descricao,
-      telefone,
-      logradouro,
-      cep,
-      bairro,
-      numero,
-      UF,
-      cidade,
-    });
-
-    const { iduser } = req.user!;
+    const { nome, descricao, telefone, logradouro, cep, bairro, numero, uf, cidade } = req.body;
+    const { id } = req.user!;
 
     try {
-      const idendereco = await enderecoService.create({
+      const EnderecoId = await enderecoService.create({
         logradouro,
         cep,
         bairro,
         numero,
-        UF,
+        uf,
         cidade,
       });
 
@@ -46,12 +24,13 @@ export const prospectController = {
         descricao,
         finalizado: 0,
         telefone,
-        iduser,
-        idendereco,
+        id,
+        EnderecoId,
+        UserId: id,
       });
 
       res.status(200).json({
-        idprospect: prospect.insertId,
+        idprospect: prospect,
         nome,
         descricao,
         telefone,
@@ -65,10 +44,10 @@ export const prospectController = {
   },
 
   show: async (req: AuthenticatedRequest, res: Response) => {
-    const { iduser } = req.user!;
+    const { id } = req.user!;
 
     try {
-      const userList = await prospectService.show(iduser);
+      const userList = await prospectService.show(id);
       return res.status(200).json(userList);
     } catch (err) {
       if (err instanceof Error) {
@@ -78,62 +57,25 @@ export const prospectController = {
   },
 
   update: async (req: AuthenticatedRequest, res: Response) => {
-    const {
-      nome,
-      descricao,
-      telefone,
-      finalizado,
-      idendereco,
-      numero,
-      logradouro,
-      cep,
-      bairro,
-      UF,
-      cidade,
-    } = req.body;
-
     const { id } = req.params;
+    const { nome, descricao, telefone, finalizado, enderecoId, logradouro, cep, bairro, cidade, numero, uf } = req.body;
 
     try {
-      await prospectService.update(
-        {
-          nome,
-          descricao,
-          finalizado,
-          telefone,
-        },
+      await prospectService.update(Number(id), {
+        nome,
+        descricao,
+        finalizado,
+        telefone,
+      });
 
-        Number(id)
-      );
-      await enderecoService.update(
-        { logradouro, cep, bairro, UF, cidade, numero },
-        idendereco
-      );
-
-      res.status(200).send();
-    } catch (err) {
-      if (err instanceof Error) {
-        return res.status(400).json({ message: err.message });
-      }
-    }
-  },
-
-  delete: async (req: AuthenticatedRequest, res: Response) => {
-    const { id } = req.params;
-
-    console.log(id);
-
-    try {
-      const prospect = await prospectService.findById(Number(id));
-
-      if (!prospect.endereco_idendereco) {
-        return res.status(404).json({ message: "Prospect não encontrado" });
-      }
-
-      await prospectService.delete(
-        Number(id),
-        Number(prospect.endereco_idendereco)
-      );
+      await enderecoService.update(enderecoId, {
+        logradouro,
+        cep,
+        bairro,
+        cidade,
+        numero,
+        uf,
+      });
 
       return res.status(200).send();
     } catch (err) {
