@@ -2,7 +2,7 @@
 
 import { sequelize } from "../database";
 import { DataTypes, Model, Optional } from "sequelize";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 export interface Supervisor {
   id: number;

@@ -1,6 +1,6 @@
-import bcrypt from "bcrypt";
 import { UserCreationAttributes } from "../models/User";
 import { Empresa, Supervisor, User } from "../models";
+import bcrypt from "bcryptjs"
 export const userService = {
   findByCode: async (codigo: string) => {
     const user = await User.findOne({
@@ -13,15 +13,7 @@ export const userService = {
   },
 
   create: async ({ codigo, email, password, nome, sobrenome, SupervisorId }: UserCreationAttributes) => {
-    await Supervisor.create({
-      nome: "Fabio",
-      sobrenome: "Reis",
-      email: "fabio.reis@bateriasmoura.com",
-      password: "123456",
-      codigo: "60101",
-      EmpresaId: 1,
-    });
-
+    console.log(password)
     const returnUser = await User.create({
       codigo,
       email,
